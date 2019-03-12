@@ -106,21 +106,17 @@
         $Credential =  $PSNeo4jConfig.Credential
     )
     begin {            
-        #Add the rest params for splat
-        if ($As) { $Params.add("As", $As) }
-        if ($MetaProperties) { $Params.add("MetaProperties", $MetaProperties) }
-        if ($MergePrefix) { $Params.add("MergePrefix", $MergePrefix) }
-        if ($BaseUri) { $Params.add("BaseUri", $BaseUri) }
-        if ($Credential) { $Params.add("Credential", $Credential) }
+        $Params = . Get-ParameterValues -BoundParameters $PSBoundParameters -Invocation $MyInvocation -Properties MetaProperties, MergePrefix, Credential, BaseUri, As
     }
     process {
         foreach($Object in $InputObject) {
-            $Params = @{            
+            $cParams = @{            
                 Hash = ($Object | Select-Object $Identifiers | ConvertTo-Hash);
                 InputObject = ($Object | ConvertTo-Hash);
                 Label = $Label
             }            
-            Set-Neo4jNode @Params -Verbose:$Verbose -NoCreate:$NoCreate -Passthru:$Passthru
+            $cParams = $cParams + $Params     
+            Set-Neo4jNode @cParams -NoCreate:$NoCreate -Passthru:$Passthru
         }
     }
 }
